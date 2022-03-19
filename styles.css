@@ -2,17 +2,21 @@
 
 body {
     background-color: #8080b0;
+    height: 100vh;
     margin: 0px;
     padding: 0px;
     font-family: 'Orbitron', sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 h1 {
-    width: 100%;
     margin: 12px auto 6px;
-    font-size: 64px;
+    font-size: 52px;
     text-align: center;
     text-shadow: 3px 3px 3px #666688;
+    flex: 2;
 }
 
 button {
@@ -33,22 +37,23 @@ div {
 
 .container {
     display: flex;
-    height: 95vh;
     margin: 10px;
-    gap: 16px;
+    padding: 20px;
+    gap: 20px;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
 }
 
 .introduction {
     background-color: #333333aa;
     color: #ffffff;
-    max-width: 40%;
     margin: auto;
     padding: 16px 32px;
     border: none;
     font-size: large;
     font-family: 'Verdana', sans-serif;
+    flex: 1;
 }
 
 .calculator {
@@ -57,7 +62,7 @@ div {
     color: #000000;
     width: 300px;
     height: 400px;
-    margin: 0px auto 20px;
+    margin: auto;
     box-shadow: 4px 4px 4px #666688;
 }
 
