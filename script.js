@@ -35,6 +35,10 @@ function backSpace() {
     return;
 }
 
+function round(num) {
+    return Math.floor(num * 100 + .5) / 100;
+}
+
 function inverse() {
     const calcDisplay = document.querySelector('.display');
     const parsedStr = calcDisplay.textContent.split(/([+\-*\/\^])/);
@@ -42,33 +46,32 @@ function inverse() {
     for (let i = 0; i < parsedStr.length-1; i++) {
         calcDisplay.textContent += parsedStr[i];
     }
-    calcDisplay.textContent += 1 / +parsedStr[parsedStr.length-1];
+    calcDisplay.textContent += round(1 / +parsedStr[parsedStr.length-1]);
 }
 
 function write() {
     const calcDisplay = document.querySelector('.display');
     const char = this.firstChild.textContent;
-    let tempStr, tempArr = [];
+    let workArray = [];
     switch (true) {
         case /\./.test(char):
             disablePeriod();
             calcDisplay.textContent += char;
             break;
         case /[+\-*\/\^]/.test(char):
-            if (/([0-9]*(\.[0-9]*)?)[+\-*\/\^]([0-9]*(\.[0-9]*)?)/.test(calcDisplay.textContent)) {
+            if (/(\d*(\.\d*)?)[+\-*\/\^](\d*(\.\d*)?)/.test(calcDisplay.textContent)) {
                 operate(char);
-            } else if (/([0-9]*(\.[0-9]*)?)[^+\-*\/\^]/.test(calcDisplay.textContent)) {
+            } else if (/(\d*(\.\d*)?)[^+\-*\/\^]/.test(calcDisplay.textContent)) {
                 disablePeriod(false);
                 calcDisplay.textContent += char;
             }
             break;
         default:
-            tempStr = calcDisplay.textContent + char;
-            tempArr = tempStr.split(/([+\-*\/\^])/);
-            for (let i = 0; i < tempArr.length; i++) {
-                tempArr[i] = tempArr[i].replace(/\b(0(?!\b))+/g,'');
-            };
-            calcDisplay.textContent = tempArr.join('');
+            workArray = (calcDisplay.textContent + char).split(/([+\-*\/\^])/);
+            workArray = workArray.map(element => {
+                return (/[+\-*\/\^]/.test(element)) ? element : round(+element);
+            });
+            calcDisplay.textContent = workArray.join('');
             break;
     }
     return;
@@ -90,13 +93,13 @@ function operate(operator) {
             result = +parsedStr[0] - +parsedStr[2];
             break;
         case '*':
-            result = +parsedStr[0] * +parsedStr[2];
+            result = round(+parsedStr[0] * +parsedStr[2]);
             break;
         case '/':
-            result = +parsedStr[0] / +parsedStr[2];
+            result = round (+parsedStr[0] / +parsedStr[2]);
             break;
         case '^':
-            result = (+parsedStr[0]) ** +parsedStr[2];
+            result = round ((+parsedStr[0]) ** +parsedStr[2]);
             break;
         }
         calcDisplay.textContent = ((operator === '=') ? result.toString() : result.toString() + operator); 
@@ -108,6 +111,10 @@ function operate(operator) {
         }
     } 
     return;
+}
+
+function overflowTest(string) {
+    return (string.length > 13) ? 'Overflow error' : string;
 }
 
 window.addEventListener('load',initCalculator);
