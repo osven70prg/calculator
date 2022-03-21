@@ -1,120 +1,195 @@
+/*  Remove JavaScript notice from DOM, create display and 
+    board divs, and board buttons assigning them content, 
+    function and color, and set the display to 0 */
 function initCalculator() {
-    const kbdKeys = ['C,clearDisplay', '←,backSpace', '1/x,inverse', '/,write', '7,write', '8,write', '9,write', '*,write', '4,write', '5,write', '6,write', '-,write', '1,write', '2,write', '3,write', '+,write', '^,write', '0,write', '.,write', '=,operate'];
-    const display = document.querySelector('.display');
-    const board = document.querySelector('.board');
-    kbdKeys.forEach(key => {
-        const [txt, func] = key.split(',');
-        const btn = document.createElement('button');
-        btn.textContent = txt;
-        board.appendChild(btn);
-        btn.addEventListener('click', window[func]);
+    const keyboardButtons = ['C,clearDisplay,0', '←,backSpace,1', '1/x,inverse,2', '/,write,2', '7,write,3', '8,write,3', '9,write,3', '*,write,2', '4,write,3', '5,write,3', '6,write,3', '-,write,2', '1,write,3', '2,write,3', '3,write,3', '+,write,2', '^,write,2', '0,write,3', '.,write,3', '=,operate,4'];
+    const buttonColors = ['#cc4444aa', '#773333aa', '#334466aa', '#333333aa', '#777777aa'];
+    const calculator = document.querySelector('.calculator');
+    calculator.textContent = '';
+    const display = document.createElement('div');
+    display.className = 'display';
+    calculator.appendChild(display);
+    const board = document.createElement('div');
+    board.className = 'board';
+    calculator.appendChild(board);
+    keyboardButtons.forEach(keyboardButton => {
+        const [buttonText, buttonFunction, buttonColorIndex] = keyboardButton.split(',');
+        const button = document.createElement('button');
+        button.style.backgroundColor = buttonColors[buttonColorIndex];
+        button.textContent = buttonText;
+        board.appendChild(button);
+        button.addEventListener('click', window[buttonFunction]);
     });
     display.textContent = '0';
     return;
 }
 
-function disablePeriod(status = true) {
-    const btns = document.querySelectorAll('.board > button');
-    btns.forEach(btn => {
-        if (btn.textContent === '.') {
-            btn.disabled = status;
+/*  Disable or enable the period key */
+function disablePeriodKey(status = true) {
+    const buttons = document.querySelectorAll('.board > button');
+    buttons.forEach(button => {
+        if (button.textContent === '.') {
+            button.disabled = status;
         }
     });
 }
 
+/*  Set display to zero, reset the class flag and enable 
+    period key*/
 function clearDisplay() {
-    const calcDisplay = document.querySelector('.display');
-    calcDisplay.textContent = '0';
+    const display = document.querySelector('.display');
+    display.classList.remove('result');
+    disablePeriodKey(false);
+    display.textContent = '0';
     return;
 }
 
+/*  Delete the last position in the display, if it is a
+    period, enable period key, and if there is no more data, 
+    set it to zero */
 function backSpace() {
-    const calcDisplay = document.querySelector('.display');
-    calcDisplay.textContent = (calcDisplay.textContent.length > 1) ? 
-                    calcDisplay.textContent.slice(0,calcDisplay.textContent.length-1) : '0';
+    const display = document.querySelector('.display');
+    if (display.textContent.charAt(display.textContent.length-1) === '.') {
+        disablePeriodKey(false);
+    }
+    display.textContent = (display.textContent.length > 1) ? 
+                    display.textContent.slice(0,display.textContent.length-1) : '0';
     return;
 }
 
+/*  Parse the display and return an array of three strings: 
+    ['1st_operand', 'operator', '2nd_operand'] */
+function parseDisplay() {
+    const display = document.querySelector('.display');
+    return display.textContent.split(/([+\-*\/\^])/);
+}
+
+/*  Round outputs to 2 decimal places */
 function round(num) {
     return Math.floor(num * 100 + .5) / 100;
 }
 
+/*  Parse and store the display content in three elements
+    if they exist: [0] 1st operand, [1] operator, [2] 2nd operand.
+    If there is an operator but no 2nd operand, function
+    exits without performing any further operation,
+    otherwise it returns the result at the right place into
+    the display context */
 function inverse() {
-    const calcDisplay = document.querySelector('.display');
-    const parsedStr = calcDisplay.textContent.split(/([+\-*\/\^])/);
-    calcDisplay.textContent = '';
-    for (let i = 0; i < parsedStr.length-1; i++) {
-        calcDisplay.textContent += parsedStr[i];
+    const display = document.querySelector('.display');
+    const parsedDisplay = parseDisplay();
+    if (!(parsedDisplay[1] && !parsedDisplay[2])) {
+        display.textContent = 
+                        (parsedDisplay[2]) ? parsedDisplay[0] + parsedDisplay[1] : '';
+        display.textContent += round(1 / +parsedDisplay[parsedDisplay.length-1]);
+        display.textContent = validate(display.textContent);
     }
-    calcDisplay.textContent += round(1 / +parsedStr[parsedStr.length-1]);
+    return;
 }
 
+/* Write on the display following some rules:
+    1.  If the class flag is set and the input is a number, 
+        clear the display and continue.
+    2.  If the input is a period, write it and disable 
+        period key.
+    3.  If the input is an operator, enable period key. If 
+        there already are two operands on the display, pass 
+        the operator to the operate function key. If there 
+        are no other operators on the display, write the 
+        operator on it. 
+    4.  If the input is a number, just write it. */
 function write() {
-    const calcDisplay = document.querySelector('.display');
+    const display = document.querySelector('.display');
     const char = this.firstChild.textContent;
-    let workArray = [];
-    switch (true) {
-        case /\./.test(char):
-            disablePeriod();
-            calcDisplay.textContent += char;
+    if ( /.*result/.test(display.className) && /[^+\-*\/\^]/.test(char)) {
+        clearDisplay();
+    }
+    display.classList.remove('result');
+    const parsedDisplay = parseDisplay();
+    switch (char) {
+        case '.':
+            disablePeriodKey();
+            display.textContent += char;
+            display.textContent = validate(display.textContent);
             break;
-        case /[+\-*\/\^]/.test(char):
-            if (/(\d*(\.\d*)?)[+\-*\/\^](\d*(\.\d*)?)/.test(calcDisplay.textContent)) {
-                operate(char);
-            } else if (/(\d*(\.\d*)?)[^+\-*\/\^]/.test(calcDisplay.textContent)) {
-                disablePeriod(false);
-                calcDisplay.textContent += char;
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '^':
+            switch (parsedDisplay.length) {
+                case 1:
+                    display.textContent += char;
+                    validate(display.textContent);
+                    break;
+                case 3:
+                    operate(char);
+                    break;
             }
             break;
         default:
-            workArray = (calcDisplay.textContent + char).split(/([+\-*\/\^])/);
-            workArray = workArray.map(element => {
-                return (/[+\-*\/\^]/.test(element)) ? element : round(+element);
-            });
-            calcDisplay.textContent = workArray.join('');
+            parsedDisplay[parsedDisplay.length-1] += char;
+            parsedDisplay[parsedDisplay.length-1] = +parsedDisplay[parsedDisplay.length-1];
+            if ((/\d*\.\d\d\d/).test(parsedDisplay[parsedDisplay.length-1])) {
+                backSpace();
+                break;
+            }
+            display.textContent = validate(parsedDisplay.join(''));
             break;
     }
     return;
 }
 
+/*  Get an operator as entry and output the operation result 
+    on the display.
+    Add the operator passed if it is not an equal sign. 
+    Set a class flag to the display */
 function operate(operator) {
-    const calcDisplay = document.querySelector('.display');
-    const parsedStr = calcDisplay.textContent.split(/([+\-*\/\^])/);
-    if (parsedStr.length === 3) {
+    const display = document.querySelector('.display');
+    const parsedDisplay = parseDisplay();
+    if (display.textContent === 'Infinity' || display.textContent === 'overflow') {
+        display.textContent = '0';
+    }
+    if (parsedDisplay.length === 3) {
         let result = 0;
         if (typeof operator !== 'string') {
             operator = this.firstChild.textContent;
-        }     
-        switch (parsedStr[1]) {
-        case '+':
-            result = +parsedStr[0] + +parsedStr[2];
-            break;
-        case '-':
-            result = +parsedStr[0] - +parsedStr[2];
-            break;
-        case '*':
-            result = round(+parsedStr[0] * +parsedStr[2]);
-            break;
-        case '/':
-            result = round (+parsedStr[0] / +parsedStr[2]);
-            break;
-        case '^':
-            result = round ((+parsedStr[0]) ** +parsedStr[2]);
-            break;
         }
-        calcDisplay.textContent = ((operator === '=') ? result.toString() : result.toString() + operator); 
-        disablePeriod(false);
+        console.log('operator:', operator)
+        switch (parsedDisplay[1]) {
+            case '+':
+                result = +parsedDisplay[0] + +parsedDisplay[2];
+                break;
+            case '-':
+                result = +parsedDisplay[0] - +parsedDisplay[2];
+                break;
+            case '*':
+                result = round(+parsedDisplay[0] * +parsedDisplay[2]);
+                break;
+            case '/':
+                result = round(+parsedDisplay[0] / +parsedDisplay[2]);
+                break;
+            case '^':
+                result = round((+parsedDisplay[0]) ** +parsedDisplay[2]);
+                break;
+         }
+        display.textContent = validate(((operator === '=') ? 
+                        result.toString() : result.toString() + operator));
         if (operator === '=') {
-            document.addEventListener('click',() => {
-            clearDisplay();
-            document.removeEventListener('click',this)},{once: true, capture: true});
+            const display = document.querySelector('.display');
+            display.className += ' result';
         }
     } 
     return;
 }
-
-function overflowTest(string) {
-    return (string.length > 13) ? 'Overflow error' : string;
+/*  Send an overflow error message when display data goes
+    over 13 characters long. */
+function validate(string) {
+    if (string.length > 13) {
+        const display = document.querySelector('.display');
+        display.textContent = 'overflow!';
+        }
+    return string;
 }
 
 window.addEventListener('load',initCalculator);
