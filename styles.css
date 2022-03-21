@@ -25,7 +25,7 @@ h1 {
 button {
     background-color: #33333388;
     border-radius: 5px;
-    width: 60px;
+    width: 54px;
     height: 40px;
     margin: auto;
     grid-area: auto;
@@ -50,6 +50,7 @@ div {
 
 .introduction {
     background-color: #333333aa;
+    min-width: 200px;
     margin: auto;
     padding: 16px 32px;
     border: none;
@@ -60,8 +61,8 @@ div {
 .calculator {
     background-color: #0e0e0e;
     background-image: linear-gradient(135deg, #3c18e0, #b91f1f);
-    width: 300px;
-    height: 400px;
+    width: 280px;
+    height: 360px;
     margin: auto;
     box-shadow: 4px 4px 4px #666688;
 }
@@ -69,13 +70,15 @@ div {
 .display {
     background-color: #afafaf;
     color: #000000;
-    width: 260px;
-    font-size: 32px;
+    width: 240px;
+    height: 28px;
+    border: none;
+    font-size: 28px;
     font-family: 'Major Mono Display', monospace;
-    height: 40px;
-    margin: 12px auto;
-    padding: 10px;
-/*    overflow: hidden; */
+    line-height: 30px;
+    margin: 8px auto;
+    padding: 8px;
+    overflow: hidden;
     text-align: right;
 }
 
@@ -84,11 +87,19 @@ div {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     grid-auto-rows: 1fr;
-    width: 280px;
-    height: 300px;
+    width: 260px;
+    height: 280px;
     margin: 12px auto;
 }
 
 .result {
-    border-color: #cccc33;
+    width: 236px;
+    height: 24px;
+    border: 2px solid #44cc44;
+}
+
+.error {
+    width: 236px;
+    height: 24px;
+    border: 2px solid #dd3333;
 }
