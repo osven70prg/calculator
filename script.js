@@ -1,10 +1,11 @@
 /*
 Remove JavaScript notice from DOM, create display and 
 board divs, populate board with buttons and assign them 
-content, function and color, and set the display to 0
+content, value, function and color, and set the display 
+to 0
 */
 function initCalculator() {
-    const keyboardButtons = ['C,clearDisplay,0', '←,backSpace,1', '1/x,inverse,2', '/,write,2', '7,write,3', '8,write,3', '9,write,3', '*,write,2', '4,write,3', '5,write,3', '6,write,3', '-,write,2', '1,write,3', '2,write,3', '3,write,3', '+,write,2', '^,write,2', '0,write,3', '.,write,3', '=,operate,4'];
+    const boardButtons = ['C,c,clearDisplay,0', '←,Backspace,backSpace,1', '1/x,x,inverse,2', '/,/,write,2', '7,7,write,3', '8,8,write,3', '9,9,write,3', '*,*,write,2', '4,4,write,3', '5,5,write,3', '6,6,write,3', '-,-,write,2', '1,1,write,3', '2,2,write,3', '3,3,write,3', '+,+,write,2', 'Exp,^,write,2', '0,0,write,3', '.,.,write,3', '=,Enter,operate,4'];
     const buttonColors = ['#cc4444aa', '#773333aa', '#334466aa', '#333333aa', '#777777aa'];
     const calculator = document.querySelector('.calculator');
     calculator.textContent = '';
@@ -14,14 +15,16 @@ function initCalculator() {
     const board = document.createElement('div');
     board.className = 'board';
     calculator.appendChild(board);
-    keyboardButtons.forEach(keyboardButton => {
-        const [buttonText, buttonFunction, buttonColorIndex] = keyboardButton.split(',');
+    boardButtons.forEach(boardButton => {
+        const [buttonText, buttonValue, buttonFunction, buttonColorIndex] = boardButton.split(',');
         const button = document.createElement('button');
-        button.style.backgroundColor = buttonColors[buttonColorIndex];
         button.textContent = buttonText;
+        button.value = buttonValue;
+        button.style.backgroundColor = buttonColors[buttonColorIndex];
         board.appendChild(button);
         button.addEventListener('click', window[buttonFunction]);
     });
+    document.addEventListener('keydown', setKeyFunction);
     display.textContent = '0';
     return;
 }
@@ -100,9 +103,11 @@ Write on the display following some rules:
     operator on it. 
 5.  If the input is a number, just write it. 
 */
-function write() {
+function write(input) {
     const display = document.querySelector('.display');
-    const input = this.firstChild.textContent;
+    if (typeof input === 'object') {
+        input = input.target.value;
+    }
     if ((/.*result/.test(display.className) && /[\d\.]/.test(input) || 
                     /.*error/.test(display.className))) {
         clearDisplay();
@@ -163,7 +168,7 @@ function operate(operator) {
     }
     if (parsedDisplay.length === 3) {
         let result = 0;
-        if (typeof operator !== 'string') {
+        if (typeof operator === 'object') {
             operator = '=';
         }
         switch (parsedDisplay[1]) {
@@ -215,6 +220,7 @@ function round(num) {
     }
     
 /*  
+
 Disable or enable the period key 
 */
 function disablePeriodKey(status = true) {
@@ -237,6 +243,26 @@ function validateLength(string) {
         string = 'overflow!';
         }
     return string;
+}
+
+/*
+Associate keys with their functions
+*/
+function setKeyFunction (e) {
+    if (/[\d\.+\-*\/]/.test(e.key)) {
+        write(e.key);
+    } else if (/c/i.test(e.key)) {
+        clearDisplay();
+    } else if (/Backspace/.test(e.key)) {
+        backSpace();
+    } else if (/Enter/.test(e.key)) {
+        operate('=');
+    } else if (/e/.test(e.key)) {
+        write('^')
+    } else if (/x/.test(e.key)) {
+        inverse()
+    }
+    return;
 }
 
 /*
